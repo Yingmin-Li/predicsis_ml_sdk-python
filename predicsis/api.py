@@ -281,7 +281,7 @@ class PredicSisAPI(object):
             file_name=data
             dataset_id = self.create_dataset(data, headers, separators)
         except IOError:
-            file_name='./tmp.dat'
+            file_name = self.storage + '/tmp.dat'
             f = open(file_name,'w')
             f.write(data)
             f.close()
