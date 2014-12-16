@@ -5,7 +5,7 @@ setup(
     version='0.1.0',
     author='Michal K. Szczerbak',
     author_email='michal.szczerbak@predicsis.com',
-    packages=['predicsis', 'predicsis.test'],
+    packages=['predicsis', 'predicsis.tests'],
     scripts=[],
     url='http://predicsis.com',
     license='LICENSE.txt',
