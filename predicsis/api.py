@@ -28,7 +28,7 @@ from xml.dom import minidom
 class PredicSisAPI(object):
     
     """ Initializes the prediction object """
-    def __init__ (self, token="", storage=".", url="https://api.stagedicsis.net/", debug=1):
+    def __init__ (self, token="", storage=".", url="https://api.predicsis.com/", debug=1):
         self.token = token
         self.storage = storage
         self.url = url; 
