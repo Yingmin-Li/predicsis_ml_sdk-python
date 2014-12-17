@@ -39,6 +39,16 @@ You can start using our SDK assuming you already have a [user token](https://dev
     print(api.retrieve_scores(scoreset_ids))
 ```
 
+Resulting in case of the Iris dataset with:
+
+```
+	ProbClassIris-setosa	ProbClassIris-versicolor	ProbClassIris-virginica
+    0.9977981	0.001100959	0.001100816
+    0.9977958	0.001102631	0.001101537
+    0.9977958	0.001102631	0.001101537
+	...
+```
+
 ## Getting Help
 
 * [SDK wiki](https://github.com/PredicSis/predicsis_ml_sdk-python/wiki)
