@@ -316,13 +316,21 @@ class PredicSisAPI(object):
     
     """ Retrieving scores """
     def retrieve_scores(self, scoreset_ids):
-        text = ""
-        # do some cleverer line merging, yo
+        lines = []
+        first = True
         for scoreset_id in scoreset_ids:
             response = self.retrieve_scoreset(scoreset_id)
             url = response['dataset']['data_file']['url']
-            text += requests.get(url).text
-        return text
+            those_lines = requests.get(url).text.split("\n")
+            i = 0
+            for l in those_lines:
+                if first:
+                    lines.append(l)
+                else:
+                    lines[i] += '\t' + l
+                i+=1
+            first = False
+        return "\n".join(lines)
     
     """ Creating an univariate unsupervised report """
     def create_uni_unsuper_report(self, dataset_id, dictionary_id):
