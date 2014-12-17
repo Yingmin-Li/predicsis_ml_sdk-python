@@ -4,11 +4,11 @@ The official PredicSis ML SDK for Python.
 
 ## Installation
 
-To install the SDK, simply:
+To install the SDK, simply use [pip](https://pip.pypa.io/):
 
     $ pip install predicsis_ml_sdk
 
-In order to be sure that you're up to date, you can also:
+Or directly the developer version from GitHub:
 
     $ pip install git+https://github.com/PredicSis/predicsis_ml_sdk-python.git
 
@@ -46,7 +46,7 @@ You can start using our SDK assuming you already have a [user token](https://dev
 
 ## License
 
-MIT. See the [LICENSE](https://github.com/PredicSis/predicsis_ml_sdk/blob/master/LICENSE) for more details.
+MIT. See the [LICENSE](https://github.com/PredicSis/predicsis_ml_sdk-python/blob/master/LICENSE) for more details.
 
 
 ## Contributing
