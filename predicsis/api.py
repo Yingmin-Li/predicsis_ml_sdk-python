@@ -144,14 +144,12 @@ class PredicSisAPI(object):
         return response
     
     """ Creating a dictionary """
-    def create_dictionary(self, dataset_id, target_var, unused_vars={}):
+    def create_dictionary(self, dataset_id):
         if (self.debug >= 1):
             print 'Creating a dictionary..'
-        payload = {'dictionary' : {'name':"Dico_"+target_var, 'dataset_id':dataset_id }}
+        payload = {'dictionary' : {'name':"Dico_"+dataset_id, 'dataset_id':dataset_id }}
         dico = self._simple_post('dictionaries', payload)
         dictionary_id = dico['dictionary']['id']
-        target_id = -1
-        unused_ids = []
         jid = dico['dictionary']['job_ids'][0]
         status = 'pending'
         job = self.retrieve_job(jid)
@@ -167,6 +165,10 @@ class PredicSisAPI(object):
     def edit_dictionary(self, dictionary_id, target_var, unused_vars={}):
         if (self.debug >= 1):
             print 'Retrieving variables..'
+        target_id = -1
+        unused_ids = []
+        dico = self._simple_get('dictionaries/' + str(dictionary_id))
+        dataset_id = dico['dictionary']['dataset_id']
         variables = self._simple_get('dictionaries/' + str(dictionary_id) + '/variables')
         i = 1
         for var in variables['variables']:
@@ -285,7 +287,7 @@ class PredicSisAPI(object):
         try:
             open(data,'rb')
             file_name=data
-            dataset_id = self.create_dataset(data, headers, separators)
+            dataset_id = self.create_dataset(data, header, separator)
         except IOError:
             file_name = self.storage + '/tmp.dat'
             f = open(file_name,'w')
