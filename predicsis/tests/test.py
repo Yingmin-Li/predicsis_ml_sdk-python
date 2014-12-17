@@ -6,12 +6,12 @@
 from api import PredicSisAPI
 
 ''' Typical workflow '''
-api = PredicSisAPI(token="be047cc75842e8cd6d10c8a8a961311a328528c2e16b3bf6076da1c825efe649", debug=1, url="https://api.stagedicsis.net/")
+api = PredicSisAPI(token="TOKEN")
 dataset_id = api.create_dataset("C:/Users/PC/Documents/projekty/use casy/datasets/and/data.dat", headers=True)
 print("******* " + dataset_id + " *******")
-result = api.create_dictionary(dataset_id, "Label")
-dictionary_id = result[0]
-target_var_id = result[1]
+dictionary_id = api.create_dictionary(dataset_id)
+print("******* " + dictionary_id + " *******")
+target_var_id = api.edit_dictionary(dictionary_id, "Label")
 print("******* " + target_var_id + " *******")
 model_id = api.create_model(dataset_id, target_var_id)
 print("******* " + model_id + " *******")

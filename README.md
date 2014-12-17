@@ -26,10 +26,11 @@ You can start using our SDK assuming you already have a [user token](https://dev
 	# Create a dataset by providing your data file
     dataset_id = api.create_dataset("./iris.dat", headers=True)
 	
-	# Create a dictionary by providing the dataset id and the name of the target variable
-    result = api.create_dictionary(dataset_id, "Class")
-    dictionary_id = result[0]
-    target_var_id = result[1]
+	# Create a dictionary by providing the dataset id
+    dictionary_id = api.create_dictionary(dataset_id)
+	
+	# Create a dictionary by providing the dictionary id and the name of the target variable
+    target_var_id = api.edit_dictionary(dictionary_id, "Class")
 	
 	# Create a model by providing the dataset id and the target variable id
     model_id = api.create_model(dataset_id, target_var_id)

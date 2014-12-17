@@ -85,7 +85,7 @@ class PredicSisAPI(object):
         return response
     
     """ Creating a dataset """
-    def create_dataset(self, file, headers=False, separators='\t'):
+    def create_dataset(self, file, header=False, separator='\t'):
         if (self.debug >= 1):
             print 'Getting credentials..'
         credentials = self._simple_get('sources/credentials/s3') 
@@ -115,7 +115,7 @@ class PredicSisAPI(object):
         sid = response['source']['id']
         if (self.debug >= 1):
             print 'Creating a dataset..'
-        payload = {'dataset' : {'name': file, 'header':headers, 'separator':separators, 'source_ids':[sid]}}
+        payload = {'dataset' : {'name': file, 'header':header, 'separator':separator, 'source_ids':[sid]}}
         response = self._simple_post('datasets', payload)
         jid = response['dataset']['job_ids'][0]
         status = 'pending'
@@ -147,7 +147,7 @@ class PredicSisAPI(object):
     def create_dictionary(self, dataset_id, target_var, unused_vars={}):
         if (self.debug >= 1):
             print 'Creating a dictionary..'
-        payload = {'dictionary' : {'name':target_var, 'dataset_id':dataset_id }}
+        payload = {'dictionary' : {'name':"Dico_"+target_var, 'dataset_id':dataset_id }}
         dico = self._simple_post('dictionaries', payload)
         dictionary_id = dico['dictionary']['id']
         target_id = -1
@@ -161,6 +161,10 @@ class PredicSisAPI(object):
             status = job['job']['status']
         if status == 'failed':
             raise Exception("Job failed! (job_id: " + job['job']['id'] + ")")
+        return dictionary_id
+    
+    """ Edit a dictionary """
+    def edit_dictionary(self, dictionary_id, target_var, unused_vars={}):
         if (self.debug >= 1):
             print 'Retrieving variables..'
         variables = self._simple_get('dictionaries/' + str(dictionary_id) + '/variables')
@@ -195,7 +199,7 @@ class PredicSisAPI(object):
             status = job['job']['status']
         if status == 'failed':
             raise Exception("Job failed! (job_id: " + job['job']['id'] + ")")
-        return [dictionary_id, target_id]
+        return target_id
     
     """ Retrieving a variable """
     def retrieve_variable(self, dictionary_id, variable_id):
@@ -265,7 +269,7 @@ class PredicSisAPI(object):
         return response
     
     """ Creating a score """
-    def create_score(self, dictionary_id, model_id, data, headers=False, separators='\t'):
+    def create_score(self, dictionary_id, model_id, data, header=False, separator='\t'):
         response = self.retrieve_model(model_id)
         prs_id = response['model']['preparation_rules_set_id']
         response = self.retrieve_preparation_rules_set(prs_id)
@@ -292,7 +296,7 @@ class PredicSisAPI(object):
             raise Exception("Error creating your test dataset")
         scoreset_ids = []
         for modality in modalities:
-            payload = {'dataset' : {'name':'Scores', 'header':headers, 'separator':separators, 'classifier_id':model_id, 'dataset_id':dataset_id, 'modalities_set_id':modalities_set_id, "main_modality":modality, 'data_file': { 'filename':file_name } }}
+            payload = {'dataset' : {'name':'Scores', 'header':header, 'separator':separator, 'classifier_id':model_id, 'dataset_id':dataset_id, 'modalities_set_id':modalities_set_id, "main_modality":modality, 'data_file': { 'filename':file_name } }}
             scoreset = self._simple_post('datasets', payload)
             scoreset_id = scoreset['dataset']['id']
             jid = scoreset['dataset']['job_ids'][0]
