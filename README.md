@@ -41,8 +41,8 @@ You can start using our SDK assuming you already have a [user token](https://dev
 
 ## Getting Help
 
-* [SDK documentation](https://github.com/PredicSis/predicsis_ml_sdk-python/wiki)
-* [API documentation](https://developer.predicsis.com/doc/v1/overview/)
+* [SDK wiki](https://github.com/PredicSis/predicsis_ml_sdk-python/wiki)
+* [API doc](https://developer.predicsis.com/doc/v1/overview/)
 
 ## License
 
