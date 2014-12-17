@@ -24,7 +24,7 @@ You can start using our SDK assuming you already have a [user token](https://dev
     api = PredicSisAPI(token="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
 	
 	# Create a dataset by providing your data file
-    dataset_id = api.create_dataset("./iris.dat", headers=True)
+    dataset_id = api.create_dataset("./iris.dat", header=True)
 	
 	# Create a dictionary by providing the dataset id
     dictionary_id = api.create_dictionary(dataset_id)
@@ -36,7 +36,7 @@ You can start using our SDK assuming you already have a [user token](https://dev
     model_id = api.create_model(dataset_id, target_var_id)
 	
 	# Score your test dataset by providing the dictionary id, model id, and your test data file
-    scoreset_ids = api.create_score(dictionary_id, model_id, "./iris.dat", headers=True)
+    scoreset_ids = api.create_score(dictionary_id, model_id, "./iris.dat", header=True)
     print(api.retrieve_scores(scoreset_ids))
 ```
 
