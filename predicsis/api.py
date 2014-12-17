@@ -265,13 +265,15 @@ class PredicSisAPI(object):
         return response
     
     """ Creating a score """
-    def create_score(self, dictionary_id, model_id, data, target_modality, headers=False, separators='\t'):
+    def create_score(self, dictionary_id, model_id, data, headers=False, separators='\t'):
         response = self.retrieve_model(model_id)
         prs_id = response['model']['preparation_rules_set_id']
         response = self.retrieve_preparation_rules_set(prs_id)
         var_id = response['preparation_rules_set']['variable_id']
         response = self.retrieve_variable(dictionary_id, var_id)
         modalities_set_id = response['variable']['modalities_set_ids'][0]
+        response = self.retrieve_modalities_set(modalities_set_id)
+        modalities = response['modalities_set']['modalities']
         if (self.debug >= 1):
             print 'Preparing data..'
         dataset_id = -1
@@ -288,19 +290,22 @@ class PredicSisAPI(object):
             dataset_id = self.create_dataset(file_name, headers, separators)
         if dataset_id == -1:
             raise Exception("Error creating your test dataset")
-        payload = {'dataset' : {'name':'Scores', 'header':headers, 'separator':separators, 'classifier_id':model_id, 'dataset_id':dataset_id, 'modalities_set_id':modalities_set_id, "main_modality":target_modality, 'data_file': { 'filename':file_name } }}
-        scoreset = self._simple_post('datasets', payload)
-        scoreset_id = scoreset['dataset']['id']
-        jid = scoreset['dataset']['job_ids'][0]
-        status = 'pending'
-        job = self.retrieve_job(jid)
-        status = job['job']['status']
-        while ((status != 'completed') and (status != 'failed')):
+        scoreset_ids = []
+        for modality in modalities:
+            payload = {'dataset' : {'name':'Scores', 'header':headers, 'separator':separators, 'classifier_id':model_id, 'dataset_id':dataset_id, 'modalities_set_id':modalities_set_id, "main_modality":modality, 'data_file': { 'filename':file_name } }}
+            scoreset = self._simple_post('datasets', payload)
+            scoreset_id = scoreset['dataset']['id']
+            jid = scoreset['dataset']['job_ids'][0]
+            status = 'pending'
             job = self.retrieve_job(jid)
             status = job['job']['status']
-        if status == 'failed':
-            raise Exception("Job failed! (job_id: " + job['job']['id'] + ")")
-        return scoreset_id
+            while ((status != 'completed') and (status != 'failed')):
+                job = self.retrieve_job(jid)
+                status = job['job']['status']
+            if status == 'failed':
+                raise Exception("Job failed! (job_id: " + job['job']['id'] + ")")
+            scoreset_ids.append(scoreset_id)
+        return scoreset_ids
     
     """ Retrieving a scoreset """
     def retrieve_scoreset(self, scoreset_id):
@@ -310,10 +315,14 @@ class PredicSisAPI(object):
         return response
     
     """ Retrieving scores """
-    def retrieve_scores(self, scoreset_id):
-        response = self.retrieve_scoreset(scoreset_id)
-        url = response['dataset']['data_file']['url']
-        return requests.get(url).text
+    def retrieve_scores(self, scoreset_ids):
+        text = ""
+        # do some cleverer line merging, yo
+        for scoreset_id in scoreset_ids:
+            response = self.retrieve_scoreset(scoreset_id)
+            url = response['dataset']['data_file']['url']
+            text += requests.get(url).text
+        return text
     
     """ Creating an univariate unsupervised report """
     def create_uni_unsuper_report(self, dataset_id, dictionary_id):

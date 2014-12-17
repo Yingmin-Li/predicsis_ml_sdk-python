@@ -35,8 +35,8 @@ You can start using our SDK assuming you already have a [user token](https://dev
     model_id = api.create_model(dataset_id, target_var_id)
 	
 	# Score your test dataset by providing the dictionary id, model id, your test data file and the modality of the target variable
-    scoreset_id = api.create_score(dictionary_id, model_id, "filepath/test.dat", "yes", headers=True)
-    print(api.retrieve_scores(scoreset_id))
+    scoreset_ids = api.create_score(dictionary_id, model_id, "filepath/test.dat", headers=True)
+    print(api.retrieve_scores(scoreset_ids))
 ```
 
 ## Getting Help

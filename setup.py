@@ -1,7 +1,7 @@
 from distutils.core import setup
 
 setup(
-    name='PredicSis_ML_SDK',
+    name='predicsis_ml_sdk',
     version='0.1.0',
     author='Michal K. Szczerbak',
     author_email='michal.szczerbak@predicsis.com',
