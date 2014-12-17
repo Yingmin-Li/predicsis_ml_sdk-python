@@ -28,7 +28,7 @@ from xml.dom import minidom
 class PredicSisAPI(object):
     
     """ Initializes the prediction object """
-    def __init__ (self, token="", storage=".", url="https://api.stagedicsis.net/", debug=1):
+    def __init__ (self, token="", storage=".", url="https://api.predicsis.com/", debug=1):
         self.token = token
         self.storage = storage
         self.url = url; 
@@ -283,7 +283,7 @@ class PredicSisAPI(object):
             file_name=data
             dataset_id = self.create_dataset(data, headers, separators)
         except IOError:
-            file_name='./tmp.dat'
+            file_name = self.storage + '/tmp.dat'
             f = open(file_name,'w')
             f.write(data)
             f.close()

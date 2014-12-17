@@ -10,7 +10,7 @@ To install the SDK, simply:
 
 In order to be sure that you're up to date, you can also:
 
-    $ pip install (git+https://github.com/PredicSis/predicsis_ml_sdk-python.git)
+    $ pip install git+https://github.com/PredicSis/predicsis_ml_sdk-python.git
 
 ## Getting started
 
