@@ -1,24 +1,3 @@
-# coding: utf-8
-#!/usr/bin/env python
-#
-# Copyright 2014-2015 PredicSis
-
-"""PredicSis REST API Python bindings.
-
-Usage:
-
-   from predicsis.api import PredicSisAPI
-   api = PredicSisAPI(token="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", debug=1)
-   dataset_id = api.create_dataset("file_path/train.dat", headers=True)
-   result = api.create_dictionary(dataset_id, "Label")
-   dictionary_id = result[0]
-   target_var_id = result[1]
-   model_id = api.create_model(dataset_id, target_var_id)
-   scoreset_id = api.create_score(dictionary_id, model_id, "filepath/test.dat", "yes", headers=True)
-   print(api.retrieve_scores(scoreset_id))
-"""
-
-
 import sys
 import pprint
 import json
