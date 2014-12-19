@@ -20,4 +20,4 @@ api_url = 'https://api.predicsis.com/'
 tmp_storage = '.'
 lvl_debug = 0
 
-from predicsis.resource import Project#(Dataset, Dictionary, Modalities, Model, Scoreset, Report, Job)
+from predicsis.resource import Project, Dataset#(Dataset, Dictionary, Modalities, Model, Scoreset, Report, Job)

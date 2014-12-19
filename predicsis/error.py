@@ -1,5 +1,4 @@
-class PredicSisError(Exception):
-    
+class PredicSisError(Exception):    
     def __init__(self, message=None, http_body=None, http_status=None, json_body=None):
         super(PredicSisError, self).__init__(message)
         if http_body and hasattr(http_body, 'decode'):

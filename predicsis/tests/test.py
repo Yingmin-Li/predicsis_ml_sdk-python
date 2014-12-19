@@ -46,3 +46,5 @@ proj = predicsis.Project.create(title="aaa")
 print proj.title
 #print predicsis.Project.retrieve_all()
 print predicsis.Project.retrieve(proj.id)
+dat = predicsis.Dataset.create(file='C:/Users/PC/Documents/projekty/use casy/datasets/and/data.dat',header=True,separator='\t')
+print dat.id
