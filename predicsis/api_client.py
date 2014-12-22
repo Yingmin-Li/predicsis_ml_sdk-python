@@ -1,33 +1,33 @@
 import requests
-import datetime
-from predicsis import lvl_debug
+import predicsis
 from predicsis import error
+from xml.dom import minidom
+import json
+
+verify_ssl_certs = True
+ssl_certs_path='./cert.crt'
 
 class APIClient(object):
-    verify_ssl_certs = False
-    ssl_certs_path='./cert.crt'
     
     @classmethod
     def request(cls, method, resource, post_data=None):
-        if (lvl_debug >= 2):
-            print datetime.datetime + '\t' + method.upper() + ' '+predicsis.api_url + resource+ ' [' + post_data + ']'
+        if (predicsis.lvl_debug >= 2):
+            predicsis.log(method.upper() + ' ' + predicsis.api_url + resource+ ' [' + str(post_data) + ']')
         headers = {'Accept': 'application/json'}
         if (method == 'post') or (method == 'patch'):
             headers['Content-Type'] = 'application/json'
-        import predicsis
         headers['Authorization'] = 'Bearer ' + predicsis.api_token;
         content, code, json = cls.request_full(method, predicsis.api_url + resource, headers, post_data)
         return cls._interpret_response(content, code, json)
         
     @classmethod
     def request_full(cls, method, url, headers, post_data=None, files=None):
-        print method, url, headers, post_data
         kwargs = {}
-        if cls.verify_ssl_certs:
-            kwargs['verify'] = cls.ssl_certs_path
+        if verify_ssl_certs:
+            kwargs['verify'] = ssl_certs_path
         else:
             kwargs['verify'] = False
-            # requests.packages.urllib3.disable_warnings()
+            requests.packages.urllib3.disable_warnings()
         try:
             try:
                 result = requests.request(method, url, headers=headers, data=post_data, files=files, timeout=80, **kwargs)
@@ -36,19 +36,24 @@ class APIClient(object):
             content = result.content
             status_code = result.status_code
             if files == None and not method=='delete':
-                json = result.json()
+                jsonn = result.json()
             else:
-                json = result
+                jsonn = result
         except Exception, e:
             cls._handle_request_error(e)
-        if (lvl_debug >= 2):
-            print datetime.datetime + '\t' + 'return status: ' + status_code
-        if (lvl_debug >= 3):
-            if files==None:
-                print datetime.datetime + '\t' + json.dumps(json.json(), indent=4)
+        if (predicsis.lvl_debug >= 2):
+            predicsis.log('\t' + 'return status: ' + str(status_code))
+        if (predicsis.lvl_debug >= 3):
+            if files==None and not method=='delete':
+                predicsis.log(json.dumps(jsonn, indent=4))
             else:
-                print xmlResponse.toprettyxml(indent="\t")
-        return content, status_code, json
+                xmlResponse = minidom.parseString(result.content)
+                predicsis.log(xmlResponse.toprettyxml(indent="\t"))
+        return content, status_code, jsonn
+    
+    @classmethod
+    def request_direct(cls, url):
+        return requests.get(url)
         
     @classmethod
     def _interpret_response(cls, content, code, json):

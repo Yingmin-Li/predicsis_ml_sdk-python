@@ -12,12 +12,14 @@ Authors: Michal Szczerbak <michal.szczerbak@predicsis.com>
 __author__='mszczerbak'
 __version__ ='0.1'
 
-import logging
-logger = logging.getLogger('predicsis')
+import datetime
 
 api_token = None
 api_url = 'https://api.predicsis.com/'
 tmp_storage = '.'
 lvl_debug = 0
 
-from predicsis.resource import Job, Project, Dataset#(Dataset, Dictionary, Modalities, Model, Scoreset, Report)
+from predicsis.resource import Job, Project, Dataset, Dictionary, Target, Model, Scoreset, Report
+
+def log(msg):
+    print str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")) + '\t' + msg

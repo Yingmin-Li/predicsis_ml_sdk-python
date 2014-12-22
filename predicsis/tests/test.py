@@ -3,48 +3,13 @@
 #
 # Copyright 2014-2015 PredicSis
 
-from predicsis.old_api import PredicSisAPI
-
-#''' Typical workflow '''
-#api = PredicSisAPI(token="be047cc75842e8cd6d10c8a8a961311a328528c2e16b3bf6076da1c825efe649", debug=1, url="https://api.stagedicsis.net/")
-#print("******* DATASET *******")
-#dataset_id = api.create_dataset("C:/Users/PC/Documents/projekty/use casy/datasets/and/data.dat", header=True)
-#print("******* " + dataset_id + " *******\n")
-#print("******* DICTIONARY *******")
-#dictionary_id = api.create_dictionary(dataset_id)
-#print("******* " + dictionary_id + " *******\n")
-#print("******* TARGET VARIABLE *******")
-#target_var_id = api.edit_dictionary(dictionary_id, "Label")
-#print("******* " + target_var_id + " *******\n")
-#print("******* MODEL *******")
-#model_id = api.create_model(dataset_id, target_var_id)
-#print("******* " + model_id + " *******\n")
-#print("******* SCORESET *******")
-##scoreset_id = api.create_score(dictionary_id, model_id, '340.93433	5.327099	1.685518	9.881241	19.6133	8.322316	69.26095	13.585038	155.31125	2276.3384	23250.264	1	417105.9	417105.9	139800.83	1.95442708E10	116.147514	1.8148049	2.681506	6.4654155	12.717999	6.205488	38.508083	7.468458	43.524803	1383.0907	8572.303	1	277654.7	277654.7	92579.28	8.570923E9	319.6355	4.9943047	2.9879637	7.8067365	19.6133	6.000171	36.002056	13.265827	155.5757	1918.2577	21309.826	1	323089.2	323089.2	111859.11	1.25124598E10	39598.67	618.72925	195.76872	1147.6816	2278.036	966.61633	934347.1	1577.8684	18039.016	264391.03	2700460.2	1	4.8445812E7	4.8445812E7	1.6237518E7	2.63656986E14	37124.867	580.07605	857.1045	2066.5764	4065.124	1983.4943	3934249.8	2387.1843	13912.072	442084.88	2740012.5	1	8.8748304E7	8.8748304E7	2.9591624E7	8.7566424E14	108974.71	1702.7299	1018.69934	2661.5845	6686.847	2045.6643	4184742.5	4522.776	53041.098	653999.9	7265251.0	1	1.10152184E8	1.10152184E8	3.8136608E7	1.45440088E15', "yes")
-#scoreset_ids = api.create_score(dictionary_id, model_id, "C:/Users/PC/Documents/projekty/use casy/datasets/and/data.dat", header=True)
-#print("******* " + scoreset_ids[0] + " / " + scoreset_ids[1] + " *******\n")
-#print("******* SCORES *******")
-#print(api.retrieve_scores(scoreset_ids))
-#
-#''' Additional reports '''
-#print("******* REPORTS *******")
-#report_id = api.create_uni_unsuper_report(dataset_id, dictionary_id)
-##print(api.retrieve_report(report_id))
-#report_id = api.create_uni_super_report(dataset_id, dictionary_id, target_var_id)
-##print(api.retrieve_report(report_id))
-#report_id = api.create_model_eval_report(dataset_id, dictionary_id, model_id, "yes")
-##print(api.retrieve_report(report_id))
-#
-#''' Cleaning everything '''
-#print("******* CLEANING *******")
-#api.delete_all()
-
 import predicsis
 predicsis.api_token="be047cc75842e8cd6d10c8a8a961311a328528c2e16b3bf6076da1c825efe649"
 predicsis.api_url="https://api.stagedicsis.net/"
+predicsis.lvl_debug = 2
+predicsis.api_client.verify_ssl_certs = False
 proj = predicsis.Project.create(title="My project")
 print proj.title
-print predicsis.Project.retrieve(proj.id)
 #print predicsis.Project.retrieve_all()
 print predicsis.Project.retrieve(proj.id)
 dat = predicsis.Dataset.create(file='C:/Users/PC/Documents/projekty/use casy/datasets/and/data.dat',header=True,separator='\t')
@@ -57,11 +22,45 @@ dat = dat.save()
 print dat.name
 dat = predicsis.Dataset.retrieve(dat.id)
 print dat.name
+dico = predicsis.Dictionary.create(name = "My new dico", dataset_id = dat.id)
+print dico.description
+#dat = predicsis.Dataset.retrieve(dat.id)
+dico.update(description = "don't know")
+dico.save()
+dico = predicsis.Dictionary.retrieve(dico.id)
+print dico.description
+#dat = predicsis.Dataset.retrieve(dat.id)
+
+target = predicsis.Target.create(target_var="Label",dictionary_id=dico.id)
+print target.modalities
+
+dat = predicsis.Dataset.retrieve(dat.id)
+
+model = predicsis.Model.create(dataset_id = dat.id, target_id = target.variable_id)
+print model.model_variables
+
+scoresets = predicsis.Scoreset.create(dictionary_id = dico.id, model_id = model.id, data = 'C:/Users/PC/Documents/projekty/use casy/datasets/and/data.dat', header=True,separator='\t')
+print predicsis.Scoreset.result(scoresets)
+
+r1 = predicsis.Report.create(type = "univariate_unsupervised", dataset_id = dat.id, dictionary_id = dico.id)
+print r1.id
+r2 = predicsis.Report.create(type = "univariate_supervised", dataset_id = dat.id, dictionary_id = dico.id, variable_id = target.variable_id)
+print r2.id
+r3 = predicsis.Report.create(type = "classifier_evaluation", dataset_id = dat.id, dictionary_id = dico.id, model_id = model.id, main_modality="yes")
+print r3.id
+
 dat.delete()
 try:
     dat = predicsis.Dataset.retrieve(dat.id)
     print dat.name
 except predicsis.error.PredicSisError:
     print 'ok'
+try:
+    dico = predicsis.Dictionary.create()
+except predicsis.error.PredicSisError:
+    print 'ok'
 predicsis.Project.delete_all()
 predicsis.Dataset.delete_all()
+predicsis.Dictionary.delete_all()
+predicsis.Target.delete_all()
+predicsis.Report.delete_all()
