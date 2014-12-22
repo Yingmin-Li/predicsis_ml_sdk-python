@@ -18,7 +18,7 @@ class APIResource(dict):
         return self.__dict__[val]
     
     def __repr__(self):
-        return '{%s}' % str(', '.join('"%s" : "%s"' % (k, v) for (k, v) in self.__dict__.iteritems()))
+        return '{%s}' % str(', '.join('"%s": %s' % (k, repr(v).replace("'","\"").replace("u","").replace("False","false").replace("True","true").replace("None","null")) for (k, v) in self.__dict__.iteritems()))
         
     @classmethod
     def res_name(cls):
@@ -44,7 +44,7 @@ class APIResource(dict):
             print datetime.datetime + '\t' + 'Retrieving all: ' + cls.res_name() + '..'
         json_data = APIClient.request('get', cls.res_url())
         j = json_data[cls.res_url()]
-        return cls(j)
+        return [cls(i) for i in j]
     
     @classmethod
     def parse_post_data(cls, data):
@@ -75,20 +75,20 @@ class CreatableAPIResource(APIResource):
         post_data = cls.parse_post_data(data)
         json_data = APIClient.request('post', cls.res_url(), post_data)
         j = json_data[cls.res_name()]
-        if not hasattr(j, 'job_ids'):
-            print "AAA " + str(j)
-            return cls(j)
-        else:
-            jid = response[cls.res_name()]['job_ids'][0]
+        try:
+            jid = j['job_ids'][0]
             status = 'pending'
-            job = self.retrieve_job(jid)
-            status = job['job']['status']
+            job = Job.retrieve(jid)
+            status = job.status
             while ((status != 'completed') and (status != 'failed')):
-                job = cls.Job.retrieve(jid)
+                print '.'
+                job = Job.retrieve(jid)
                 status = job.status
                 if status == 'failed':
                     raise Exception("Job failed! (job_id: " + job.id + ")")
             return cls.retrieve(j['id'])
+        except KeyError:
+            return cls(j)
 
 class UpdatableAPIResource(APIResource):
     to_update = {}
@@ -107,8 +107,23 @@ class UpdatableAPIResource(APIResource):
         
     def reset(self):
         self.to_update = {}
+
+class DeletableAPIResource(APIResource):
+    @classmethod
+    def delete_all(cls):
+        objs = cls.retrieve_all()
+        for obj in objs:
+            obj.delete()
+            
+    def delete(self):
+        if (lvl_debug >= 1):
+            print datetime.datetime + '\t' + 'Deleting: ' + cls.res_name() + '..'
+        APIClient.request('delete', self.__class__.res_url() + '/' + self.id)
+        
+class Job(DeletableAPIResource):
+    pass
     
-class Project(CreatableAPIResource):
+class Project(CreatableAPIResource, DeletableAPIResource):
     pass
 
 class Credentials(CreatableAPIResource):    
@@ -116,15 +131,15 @@ class Credentials(CreatableAPIResource):
     def res_url(cls):
         return 'sources/credentials'
     
-class Source(CreatableAPIResource):
+class Source(CreatableAPIResource, DeletableAPIResource):
     pass
     
-class DatasetAPI(CreatableAPIResource):
+class DatasetAPI(CreatableAPIResource, DeletableAPIResource):
     @classmethod
     def res_name(cls):
         return 'dataset'
     
-class Dataset(CreatableAPIResource, UpdatableAPIResource):
+class Dataset(CreatableAPIResource, UpdatableAPIResource, DeletableAPIResource):
     @classmethod
     def create(cls, name="My dataset", header=True, **data):
         credentials = Credentials.retrieve('s3')
@@ -148,8 +163,16 @@ class Dataset(CreatableAPIResource, UpdatableAPIResource):
         sid = str(source.id)
         print sid
         dapi = DatasetAPI.create(name=name, header=str(data.get('header')).lower(), separator=data.get('separator').encode('string_escape'), source_ids=[sid])
-        print "XXX " + str(dapi)
         return cls(json.loads(str(dapi)))
+    
+    def delete(self):
+        if (lvl_debug >= 1):
+            print datetime.datetime + '\t' + 'Deleting: ' + cls.res_name() + '..'
+        APIClient.request('delete', self.__class__.res_url() + '/' + self.id)
+        if (lvl_debug >= 1):
+            print datetime.datetime + '\t' + 'Deleting: source..'
+        for id in self.source_ids:
+            APIClient.request('delete', 'sources/' + id)
 
 class Job(APIResource):
     pass

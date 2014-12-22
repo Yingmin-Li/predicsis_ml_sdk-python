@@ -44,10 +44,24 @@ predicsis.api_token="be047cc75842e8cd6d10c8a8a961311a328528c2e16b3bf6076da1c825e
 predicsis.api_url="https://api.stagedicsis.net/"
 proj = predicsis.Project.create(title="My project")
 print proj.title
+print predicsis.Project.retrieve(proj.id)
 #print predicsis.Project.retrieve_all()
 print predicsis.Project.retrieve(proj.id)
 dat = predicsis.Dataset.create(file='C:/Users/PC/Documents/projekty/use casy/datasets/and/data.dat',header=True,separator='\t')
 print dat.name
+job_id = dat.job_ids[0]
+job = predicsis.Job.retrieve(job_id)
+print job.status
 dat.update(name="New name")
 dat = dat.save()
 print dat.name
+dat = predicsis.Dataset.retrieve(dat.id)
+print dat.name
+dat.delete()
+try:
+    dat = predicsis.Dataset.retrieve(dat.id)
+    print dat.name
+except predicsis.error.PredicSisError:
+    print 'ok'
+predicsis.Project.delete_all()
+predicsis.Dataset.delete_all()

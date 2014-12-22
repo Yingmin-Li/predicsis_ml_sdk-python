@@ -35,7 +35,7 @@ class APIClient(object):
                 raise TypeError('Your "requests" library may be out of date. Error was: %s' % (e,))
             content = result.content
             status_code = result.status_code
-            if files == None:
+            if files == None and not method=='delete':
                 json = result.json()
             else:
                 json = result
