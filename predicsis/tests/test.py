@@ -42,9 +42,12 @@ from predicsis.old_api import PredicSisAPI
 import predicsis
 predicsis.api_token="be047cc75842e8cd6d10c8a8a961311a328528c2e16b3bf6076da1c825efe649"
 predicsis.api_url="https://api.stagedicsis.net/"
-proj = predicsis.Project.create(title="aaa")
+proj = predicsis.Project.create(title="My project")
 print proj.title
 #print predicsis.Project.retrieve_all()
 print predicsis.Project.retrieve(proj.id)
 dat = predicsis.Dataset.create(file='C:/Users/PC/Documents/projekty/use casy/datasets/and/data.dat',header=True,separator='\t')
-print dat.id
+print dat.name
+dat.update(name="New name")
+dat = dat.save()
+print dat.name

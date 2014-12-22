@@ -58,7 +58,12 @@ class APIClient(object):
         
     @classmethod
     def _handle_api_error(cls, content, code, json):
-        raise error.PredicSisError(str(json['status']) +' '+ json['message'], content, code, json)
+        msg = ""
+        try:
+            msg = json['message']
+        except KeyError:
+            msg = json['error']
+        raise error.PredicSisError(str(json['status']) +' '+ msg, content, code, json)
     
     @classmethod
     def _handle_request_error(cls, e):
