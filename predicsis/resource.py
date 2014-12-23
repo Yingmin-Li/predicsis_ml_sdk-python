@@ -76,7 +76,7 @@ class CreatableAPIResource(APIResource):
                 job = Job.retrieve(jid)
                 status = job.status
                 if status == 'failed':
-                    raise Exception("Job failed! (job_id: " + job.id + ")")
+                    raise PredicSisError("Job failed! (job_id: " + job.id + ")")
             return cls.retrieve(j['id'])
         except KeyError:
             return cls(j)
@@ -103,7 +103,7 @@ class UpdatableAPIResource(APIResource):
                 job = Job.retrieve(jid)
                 status = job.status
                 if status == 'failed':
-                    raise Exception("Job failed! (job_id: " + job.id + ")")
+                    raise PredicSisError("Job failed! (job_id: " + job.id + ")")
             return self.__class__.retrieve(j['id'])
         except KeyError:
             return self.__class__(j)
@@ -227,7 +227,7 @@ class Target(CreatableAPIResource, DeletableAPIResource):
                     var.save()
             i+=1
         if target_id == -1:
-            raise Exception("Your target variable doesn't exist in the dataset.")
+            raise PredicSisError("Your target variable doesn't exist in the dataset.")
         predicsis.log('Creating: target..', 1)
         modal = ModalitiesSet.create(variable_id = target_id, dataset_id = dataset_id)
         return cls(json.loads(str(modal)))
@@ -287,7 +287,7 @@ class Scoreset(CreatableAPIResource, UpdatableAPIResource, DeletableAPIResource)
             else:
                 dataset_id = Dataset.create(file=file_name, header=data.get('header'), separator=data.get('separator'), name = data.get('name')).id
         if dataset_id == -1:
-            raise Exception("Error creating your test dataset")
+            raise PredicSisError("Error creating your test dataset")
         scoresets = []
         for modality in modalities:
             if data.get('header') == None:
@@ -328,7 +328,7 @@ class Report(CreatableAPIResource, UpdatableAPIResource, DeletableAPIResource):
     @classmethod
     def create(cls, **data):
         if validate('c', cls.__name__, data) < 0:
-            raise Exception("Validation failed!")
+            raise PredicSisError("Validation failed!")
         type = data.get('type')
         if type == 'univariate_unsupervised':
             rep = ReportAPI.create(type=data.get('type'), dataset_id = data.get('dataset_id'), dictionary_id = data.get('dictionary_id'))

@@ -1,6 +1,6 @@
 import requests
 import predicsis
-from predicsis import error
+from predicsis.error import PredicSisError
 from xml.dom import minidom
 import json
 
@@ -65,7 +65,7 @@ class APIClient(object):
             msg = json['message']
         except KeyError:
             msg = json['error']
-        raise error.PredicSisError(str(json['status']) +' '+ msg, content, code, json)
+        raise PredicSisError(str(json['status']) +' '+ msg, content, code, json)
     
     @classmethod
     def _handle_request_error(cls, e):
@@ -80,4 +80,4 @@ class APIClient(object):
         else:
             err += " with no error message"
         msg = msg + "\n\n(Network error: %s)" % (err,)
-        raise error.PredicSisError(msg)
+        raise PredicSisError(msg)
