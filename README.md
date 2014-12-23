@@ -21,8 +21,7 @@ You can start using our SDK assuming you already have a [user token](https://dev
     import predicsis
 	
 	# Initiate the API with your token
-	predicsis.api_token="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-	predicsis.api_url="https://api.stagedicsis.net/"
+	predicsis.api_token="YOUR_SECRET_TOKEN"
 	
 	# Workflow from uploading a dataset to scores
 	dataset = predicsis.Dataset.create(file='./Iris.dat',name='My Iris',header=True,separator='\t')
