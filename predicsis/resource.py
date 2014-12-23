@@ -159,6 +159,8 @@ class Dataset(CreatableAPIResource, UpdatableAPIResource, DeletableAPIResource):
         predicsis.log('Uploading a file..', 1)
         files = {'file': open(data.get('file'),'rb')}
         response = APIClient.request_full(method='post', url=credentials.s3_endpoint, headers=[],post_data=payload, files=files)
+        if not response[1] == 201:
+            raise PredicSisError('Upload failed by Amazon - retry.')
         xmlResponse = minidom.parseString(response[0])
         keyList = xmlResponse.getElementsByTagName('Key')
         predicsis.log('Creating: dataset..', 1)
