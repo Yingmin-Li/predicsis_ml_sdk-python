@@ -1,1 +1,2 @@
 v0.1, 17/12/2014 -- Initial release.
+v1.0, 30/12/2014 -- More object oriented calls.

@@ -18,26 +18,18 @@ You can start using our SDK assuming you already have a [user token](https://dev
 
 ```python
     # Import the PredicSisAPI object
-    from predicsis.api import PredicSisAPI
+    import predicsis
 	
 	# Initiate the API with your token
-    api = PredicSisAPI(token="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+	predicsis.api_token="YOUR_SECRET_TOKEN"
 	
-	# Create a dataset by providing your data file
-    dataset_id = api.create_dataset("./iris.dat", header=True)
-	
-	# Create a dictionary by providing the dataset id
-    dictionary_id = api.create_dictionary(dataset_id)
-	
-	# Create a dictionary by providing the dictionary id and the name of the target variable
-    target_var_id = api.edit_dictionary(dictionary_id, "Class")
-	
-	# Create a model by providing the dataset id and the target variable id
-    model_id = api.create_model(dataset_id, target_var_id)
-	
-	# Score your test dataset by providing the dictionary id, model id, and your test data file
-    scoreset_ids = api.create_score(dictionary_id, model_id, "./iris.dat", header=True)
-    print(api.retrieve_scores(scoreset_ids))
+	# Workflow from uploading a dataset to scores
+	dataset = predicsis.Dataset.create(file='./Iris.dat',name='My Iris',header=True,separator='\t')
+	dictionary = predicsis.Dictionary.create(name = "My new dico", dataset_id = dataset.id)
+	target = predicsis.Target.create(target_var = "Class", dictionary_id = dictionary.id)
+	model = predicsis.Model.create(dataset_id = dataset.id, target_id = target.variable_id)
+	scoresets = predicsis.Scoreset.create(dictionary_id = dictionary.id, model_id = model.id, data = './Iris.dat', header=True,separator='\t', name='Iris scored', file_name='iris_out.txt')
+	print predicsis.Scoreset.result(scoresets)
 ```
 
 Resulting in case of the Iris dataset with:
