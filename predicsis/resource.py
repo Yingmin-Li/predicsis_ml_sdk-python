@@ -1,4 +1,5 @@
 from predicsis.api_client import APIClient
+from predicsis.error import PredicSisError
 from collections import namedtuple
 import predicsis
 import json
@@ -32,16 +33,14 @@ class APIResource(dict):
     
     @classmethod
     def retrieve(cls, id):
-        if (predicsis.lvl_debug >= 1):
-            predicsis.log('Retrieving: ' + cls.res_name() + '..')
+        predicsis.log('Retrieving: ' + cls.res_name() + '..', 1)
         json_data = APIClient.request('get', cls.res_url() + '/' + id)
         j = json_data[cls.res_name()]
         return cls(j)
     
     @classmethod
     def retrieve_all(cls):
-        if (predicsis.lvl_debug >= 1):
-            predicsis.log('Retrieving all: ' + cls.res_name() + '..')
+        predicsis.log('Retrieving all: ' + cls.res_name() + '..', 1)
         json_data = APIClient.request('get', cls.res_url())
         j = json_data[cls.res_url().split('/')[-1]]
         return [cls(i) for i in j]
@@ -62,8 +61,9 @@ class APIResource(dict):
 class CreatableAPIResource(APIResource):
     @classmethod
     def create(cls, **data):
-        if (predicsis.lvl_debug >= 1):
-            predicsis.log('Creating: ' + cls.res_name() + '..')
+        if validate('c', cls.__name__, data) < 0:
+            raise PredicSisError("Validation failed!")
+        predicsis.log('Creating: ' + cls.res_name() + '..', 1)
         post_data = cls.parse_post_data(data)
         json_data = APIClient.request('post', cls.res_url(), post_data)
         j = json_data[cls.res_name()]
@@ -85,12 +85,12 @@ class UpdatableAPIResource(APIResource):
     to_update = {}
     
     def update(self, **data):
-        for key, value in data.iteritems():
-            self.to_update[key] = value
+        if validate('u', self.__class__.__name__, data) >= 0:
+            for key, value in data.iteritems():
+                self.to_update[key] = value
         
     def save(self):
-        if (predicsis.lvl_debug >= 1):
-            predicsis.log('Updating: ' + self.__class__.res_name() + '..')
+        predicsis.log('Updating: ' + self.__class__.res_name() + '..', 1)
         post_data = self.__class__.parse_post_data(self.to_update)
         json_data = APIClient.request('patch', self.__class__.res_url() + '/' + self.id, post_data)
         j = json_data[self.__class__.res_name()]
@@ -119,8 +119,7 @@ class DeletableAPIResource(APIResource):
             obj.delete()
             
     def delete(self):
-        if (predicsis.lvl_debug >= 1):
-            predicsis.log('Deleting: ' + self.__class__.res_name() + '..')
+        predicsis.log('Deleting: ' + self.__class__.res_name() + '..', 1)
         APIClient.request('delete', self.__class__.res_url() + '/' + self.id)
         
 class Job(DeletableAPIResource):
@@ -144,7 +143,9 @@ class DatasetAPI(CreatableAPIResource, DeletableAPIResource):
     
 class Dataset(CreatableAPIResource, UpdatableAPIResource, DeletableAPIResource):
     @classmethod
-    def create(cls, name="My dataset", header=True, **data):
+    def create(cls, **data):
+        if validate('c', cls.__name__, data) < 0:
+            raise PredicSisError("Validation failed!")
         credentials = Credentials.retrieve('s3')
         payload = {
             'Content-Type':'multipart/form-data',
@@ -155,25 +156,23 @@ class Dataset(CreatableAPIResource, UpdatableAPIResource, DeletableAPIResource):
             'signature':credentials.signature,
             'key':credentials.key
         }
-        if (predicsis.lvl_debug >= 1):
-            predicsis.log('Uploading a file..')
+        predicsis.log('Uploading a file..', 1)
         files = {'file': open(data.get('file'),'rb')}
         response = APIClient.request_full(method='post', url=credentials.s3_endpoint, headers=[],post_data=payload, files=files)
         xmlResponse = minidom.parseString(response[0])
         keyList = xmlResponse.getElementsByTagName('Key')
-        if (predicsis.lvl_debug >= 1):
-            predicsis.log('Creating: dataset..')
+        predicsis.log('Creating: dataset..', 1)
         source = Source.create(name=data.get('file'), key=str(keyList[0].firstChild.data))
         sid = str(source.id)
-        dapi = DatasetAPI.create(name=name, header=str(header).lower(), separator=data.get('separator').encode('string_escape'), source_ids=[sid])
+        if data.get('header') == None:
+            dapi = DatasetAPI.create(name=data.get('name'), separator=data.get('separator').encode('string_escape'), source_ids=[sid])
+        else:
+            dapi = DatasetAPI.create(name=data.get('name'), header=str(data.get('header')).lower(), separator=data.get('separator').encode('string_escape'), source_ids=[sid])
         return cls(json.loads(str(dapi)))
     
     def delete(self):
-        if (predicsis.lvl_debug >= 1):
-            predicsis.log('Deleting: ' + self.__class__.res_name() + '..')
+        predicsis.log('Deleting: ' + self.__class__.res_name() + '..', 1)
         APIClient.request('delete', self.__class__.res_url() + '/' + self.id)
-        if (predicsis.lvl_debug >= 1):
-            predicsis.log('Deleting: source..')
         for id in self.source_ids:
             APIClient.request('delete', 'sources/' + id)
             
@@ -201,34 +200,35 @@ class Target(CreatableAPIResource, DeletableAPIResource):
         return 'modalities_set'
     
     @classmethod
-    def create(cls, target_var, dictionary_id, unused_vars=[]):
-        if (predicsis.lvl_debug >= 1):
-            predicsis.log('Retrieving: variables..')
+    def create(cls, **data):
+        if validate('c', cls.__name__, data) < 0:
+            raise PredicSisError("Validation failed!")
+        predicsis.log('Retrieving: variables..', 1)
         target_id = -1
         unused_ids = []
-        dico = Dictionary.retrieve(dictionary_id)
+        dico = Dictionary.retrieve(data.get('dictionary_id'))
         dataset_id = dico.dataset_id
-        Variable.dic_id = dictionary_id
+        Variable.dic_id = data.get('dictionary_id')
         variables = Variable.retrieve_all()
         i = 1
         for var in variables:
-            if type(target_var).__name__ == "str":
-                if var.name == target_var:
+            if type(data.get('target_var')).__name__ == "str":
+                if var.name == data.get('target_var'):
                     target_id = var.id
-            elif type(target_var).__name__ == "int":
-                if i == target_var:
+            elif type(data.get('target_var')).__name__ == "int":
+                if i == data.get('target_var'):
                     target_id = var.id
-            if var.name in unused_vars:
-                var.update(use = False)
-                var.save()
-            elif i in unused_vars:
-                var.update(use = False)
-                var.save()
+            if not data.get('unused_vars') == None:
+                if var.name in data.get('unused_vars'):
+                    var.update(use = False)
+                    var.save()
+                elif i in data.get('unused_vars'):
+                    var.update(use = False)
+                    var.save()
             i+=1
         if target_id == -1:
             raise Exception("Your target variable doesn't exist in the dataset.")
-        if (predicsis.lvl_debug >= 1):
-            print 'Creating: target..'
+        predicsis.log('Creating: target..', 1)
         modal = ModalitiesSet.create(variable_id = target_id, dataset_id = dataset_id)
         return cls(json.loads(str(modal)))
     
@@ -244,8 +244,10 @@ class Classifier(CreatableAPIResource):
 
 class Model(CreatableAPIResource):
     @classmethod
-    def create(cls, dataset_id, target_id):
-        prs = PreparationRules.create(variable_id = target_id, dataset_id = dataset_id)
+    def create(cls, **data):
+        if validate('c', cls.__name__, data) < 0:
+            raise PredicSisError("Validation failed!")
+        prs = PreparationRules.create(variable_id = data.get('target_id'), dataset_id = data.get('dataset_id'))
         clasif = Classifier.create(type='classifier',preparation_rules_set_id=prs.id)
         return cls(json.loads(str(clasif)))
 
@@ -255,35 +257,43 @@ class Scoreset(CreatableAPIResource, UpdatableAPIResource, DeletableAPIResource)
         return 'dataset'
     
     @classmethod
-    def create(cls, dictionary_id, model_id, data, header=True,separator='\t'):
-        response = Model.retrieve(model_id)
+    def create(cls, **data):
+        if validate('c', cls.__name__, data) < 0:
+            raise PredicSisError("Validation failed!")
+        response = Model.retrieve(data.get('model_id'))
         prs_id = response.preparation_rules_set_id
         response = PreparationRules.retrieve(prs_id)
         var_id = response.variable_id
-        Variable.dictionary_id = dictionary_id
+        Variable.dictionary_id = data.get('dictionary_id')
         response = Variable.retrieve(var_id)
         modalities_set_id = response.modalities_set_ids[0]
         response = ModalitiesSet.retrieve(modalities_set_id)
         modalities = response.modalities
-        if (predicsis.lvl_debug >= 1):
-            print 'Preparing data..'
+        predicsis.log('Preparing data..', 1)
         dataset_id = -1
         file_name = ""
         try:
-            open(data,'rb')
-            file_name=data
-            dataset_id = Dataset.create(file=data, header=header, separator=separator).id
+            open(data.get('data'),'rb')
+            if data.get('header') == None:
+                dataset_id = Dataset.create(file=data.get('data'), separator=data.get('separator'), name = data.get('name')).id
+            else:
+                dataset_id = Dataset.create(file=data.get('data'), header=data.get('header'), separator=data.get('separator'), name = data.get('name')).id
         except IOError:
-            file_name = self.storage + '/tmp.dat'
             f = open(file_name,'w')
             f.write(data)
             f.close()
-            dataset_id = Dataset.create(file=file_name, header=header, separator=separator).id
+            if data.get('header') == None:
+                dataset_id = Dataset.create(file=file_name, separator=data.get('separator'), name = data.get('name')).id
+            else:
+                dataset_id = Dataset.create(file=file_name, header=data.get('header'), separator=data.get('separator'), name = data.get('name')).id
         if dataset_id == -1:
             raise Exception("Error creating your test dataset")
         scoresets = []
         for modality in modalities:
-            dataset = DatasetAPI.create(name='Scores', header=str(header).lower(), separator=separator.encode('string_escape'), classifier_id=model_id, dataset_id=dataset_id, modalities_set_id=modalities_set_id, main_modality=modality, data_file = { "filename": repr(file_name.split('/')[-1]).replace("'","")})
+            if data.get('header') == None:
+                dataset = DatasetAPI.create(name=data.get('name'), separator=data.get('separator').encode('string_escape'), classifier_id=data.get('model_id'), dataset_id=dataset_id, modalities_set_id=modalities_set_id, main_modality=modality, data_file = { "filename": data.get('file_name')})
+            else:
+                dataset = DatasetAPI.create(name=data.get('name'), header=str(data.get('header')).lower(), separator=data.get('separator').encode('string_escape'), classifier_id=data.get('model_id'), dataset_id=dataset_id, modalities_set_id=modalities_set_id, main_modality=modality, data_file = { "filename": data.get('file_name')})
             scoreset = cls(json.loads(str(dataset)))
             scoresets.append(scoreset)
         return scoresets
@@ -317,6 +327,8 @@ class ReportAPI(CreatableAPIResource, UpdatableAPIResource, DeletableAPIResource
 class Report(CreatableAPIResource, UpdatableAPIResource, DeletableAPIResource):
     @classmethod
     def create(cls, **data):
+        if validate('c', cls.__name__, data) < 0:
+            raise Exception("Validation failed!")
         type = data.get('type')
         if type == 'univariate_unsupervised':
             rep = ReportAPI.create(type=data.get('type'), dataset_id = data.get('dataset_id'), dictionary_id = data.get('dictionary_id'))
@@ -334,3 +346,61 @@ class Report(CreatableAPIResource, UpdatableAPIResource, DeletableAPIResource):
             modalities_set_id = response.modalities_set_ids[0]
             rep = ReportAPI.create(type=data.get('type'), dataset_id = data.get('dataset_id'), modalities_set_id=modalities_set_id, classifier_id = data.get('model_id'), main_modality=data.get('main_modality'))
             return cls(json.loads(str(rep)))
+
+def validate(act, obj, data):
+    cmandatory = {
+        'dataset' : ['file', 'name', 'separator'],
+        'dictionary' : ['name'],
+        'target' : ['target_var', 'dictionary_id'],
+        'model' : ['target_id', 'dataset_id'],
+        'scoreset' : ['name', 'separator', 'model_id', 'dictionary_id', 'data', 'file_name'],
+        'report1' : ['type', 'dictionary_id', 'dataset_id'],
+        'report2' : ['type', 'dictionary_id', 'dataset_id', 'variable_id'],
+        'report3' : ['type', 'dictionary_id', 'dataset_id', 'model_id', 'main_modality']
+    }
+    coptional = {
+        'dataset' : ['header', 'file_name'],
+        'dictionary' : ['description', 'dataset_id'],
+        'target' : ['unused_vars'],
+        'model' : ['name'],
+        'scoreset' : ['header'],
+        'report1' : ['title'],
+        'report2' : ['title'],
+        'report3' : ['title']
+    }
+    uoptional = {
+        'dataset' : ['name', 'header', 'separator'],
+        'dictionary' : ['name', 'description'],
+        'scoreset' : ['name', 'header', 'separator'],
+        'report' : ['title']
+    }
+    if not obj.lower() in coptional.keys() + uoptional.keys():
+        predicsis.log('Unvalidated object [' + obj + ']', 0)
+        return 0
+    if act == 'c':
+        predicsis.log('Parameters: mandatory'+ str(cmandatory.get(obj.lower())) + ', optional' + str(coptional.get(obj.lower())) + ', passed' + str(data.keys()), 3)
+        if obj == 'Report':
+            if data.get('type') == None:
+                predicsis.log('Missing parameter to create [Report]: type')
+                return -1
+            if data.get('type') == 'univariate_unsupervised':
+                obj = 'Report1'
+            elif data.get('type') == 'univariate_supervised':
+                obj = 'Report2'
+            elif data.get('type') == 'classifier_evaluation':
+                obj = 'Report3'
+        if not all(x in data.keys() for x in cmandatory.get(obj.lower())):
+            predicsis.log('Missing parameters to create [' + obj + ']: ' + str([item for item in cmandatory.get(obj.lower()) if item not in data.keys()]), -1)
+            return -1
+    if act == 'c':
+        list = [item for item in data.keys() if item not in (coptional.get(obj.lower()) + cmandatory.get(obj.lower()))]
+        if len(list) > 0:
+            predicsis.log('Unnecessary parameters to create [' + obj + ']: ' + str(list), 0)
+            return 0
+    if act == 'u':
+        predicsis.log('Parameters: optional' + str(uoptional.get(obj.lower())) + ', passed' + str(data.keys()), 3)
+        list = [item for item in data.keys() if item not in uoptional.get(obj.lower())]
+        if len(list) > 0:
+            predicsis.log('Unnecessary parameters to update [' + obj + ']: ' + str(list), 0)
+            return 0
+    return 1

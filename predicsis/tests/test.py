@@ -8,16 +8,17 @@ predicsis.api_token="be047cc75842e8cd6d10c8a8a961311a328528c2e16b3bf6076da1c825e
 predicsis.api_url="https://api.stagedicsis.net/"
 predicsis.lvl_debug = 2
 predicsis.api_client.verify_ssl_certs = False
-proj = predicsis.Project.create(title="My project")
-print proj.title
+#predicsis.api_client.ssl_certs_path = 'C:/Users/PC/Documents/projekty/tools/stagedicsis.net.crt'
+#proj = predicsis.Project.create(title="My project")
+#print proj.title
 #print predicsis.Project.retrieve_all()
-print predicsis.Project.retrieve(proj.id)
-dat = predicsis.Dataset.create(file='C:/Users/PC/Documents/projekty/use casy/datasets/and/data.dat',header=True,separator='\t')
+#print predicsis.Project.retrieve(proj.id)
+dat = predicsis.Dataset.create(name='My dataset',file='C:/Users/PC/Documents/projekty/use casy/datasets/and/data.dat',header=True,separator='\t')
 print dat.name
 job_id = dat.job_ids[0]
 job = predicsis.Job.retrieve(job_id)
 print job.status
-dat.update(name="New name")
+dat.update(name="New name", puap='fdsqfqfsq')
 dat = dat.save()
 print dat.name
 dat = predicsis.Dataset.retrieve(dat.id)
@@ -39,7 +40,7 @@ dat = predicsis.Dataset.retrieve(dat.id)
 model = predicsis.Model.create(dataset_id = dat.id, target_id = target.variable_id)
 print model.model_variables
 
-scoresets = predicsis.Scoreset.create(dictionary_id = dico.id, model_id = model.id, data = 'C:/Users/PC/Documents/projekty/use casy/datasets/and/data.dat', header=True,separator='\t')
+scoresets = predicsis.Scoreset.create(name="My scores",dictionary_id = dico.id, model_id = model.id, data = 'C:/Users/PC/Documents/projekty/use casy/datasets/and/data.dat', header=True,separator='\t', file_name='out.txt', papa='papa')
 print predicsis.Scoreset.result(scoresets)
 
 r1 = predicsis.Report.create(type = "univariate_unsupervised", dataset_id = dat.id, dictionary_id = dico.id)

@@ -21,5 +21,18 @@ lvl_debug = 0
 
 from predicsis.resource import Job, Project, Dataset, Dictionary, Target, Model, Scoreset, Report
 
-def log(msg):
-    print str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")) + '\t' + msg
+def log(msg, level):
+    if level <= lvl_debug:
+        msg_final = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")) + '\t'
+        if level == 1:
+            msg_final += 'INFO'
+        elif level == 2:
+            msg_final += 'DEBUG'
+        elif level == 3:
+            msg_final += 'TRACE'
+        elif level == -1:
+            msg_final += 'ERROR'
+        elif level == 0:
+            msg_final += 'WARN'
+        msg_final += '\t' + msg
+        print msg_final

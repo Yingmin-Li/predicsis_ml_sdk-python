@@ -5,14 +5,13 @@ from xml.dom import minidom
 import json
 
 verify_ssl_certs = True
-ssl_certs_path='./cert.crt'
+ssl_certs_path='./predicsis.com.crt'
 
 class APIClient(object):
     
     @classmethod
     def request(cls, method, resource, post_data=None):
-        if (predicsis.lvl_debug >= 2):
-            predicsis.log(method.upper() + ' ' + predicsis.api_url + resource+ ' [' + str(post_data) + ']')
+        predicsis.log(method.upper() + ' ' + predicsis.api_url + resource+ ' [' + str(post_data) + ']', 2)
         headers = {'Accept': 'application/json'}
         if (method == 'post') or (method == 'patch'):
             headers['Content-Type'] = 'application/json'
@@ -41,14 +40,12 @@ class APIClient(object):
                 jsonn = result
         except Exception, e:
             cls._handle_request_error(e)
-        if (predicsis.lvl_debug >= 2):
-            predicsis.log('\t' + 'return status: ' + str(status_code))
-        if (predicsis.lvl_debug >= 3):
-            if files==None and not method=='delete':
-                predicsis.log(json.dumps(jsonn, indent=4))
-            else:
-                xmlResponse = minidom.parseString(result.content)
-                predicsis.log(xmlResponse.toprettyxml(indent="\t"))
+        predicsis.log('return status: ' + str(status_code), 2)
+        if files==None and not method=='delete':
+            predicsis.log(json.dumps(jsonn, indent=4), 3)
+        elif not method=='delete':
+            xmlResponse = minidom.parseString(result.content)
+            predicsis.log(xmlResponse.toprettyxml(indent="\t"), 3)
         return content, status_code, jsonn
     
     @classmethod
