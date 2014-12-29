@@ -104,9 +104,21 @@ class UpdatableAPIResource(APIResource):
                 status = job.status
                 if status == 'failed':
                     raise PredicSisError("Job failed! (job_id: " + job.id + ")")
-            return self.__class__.retrieve(j['id'])
+            json_data = APIClient.request('get', self.res_url() + '/' + self.id)
+            obj = json_data[self.res_name()]
+            for k, v in obj.iteritems():
+                if isinstance(v, dict):
+                    setattr(self, k, APIResource(v))
+                else:
+                    setattr(self, k, v)
         except KeyError:
-            return self.__class__(j)
+            json_data = APIClient.request('get', self.res_url() + '/' + self.id)
+            obj = json_data[self.res_name()]
+            for k, v in obj.iteritems():
+                if isinstance(v, dict):
+                    setattr(self, k, APIResource(v))
+                else:
+                    setattr(self, k, v)
         
     def reset(self):
         self.to_update = {}
