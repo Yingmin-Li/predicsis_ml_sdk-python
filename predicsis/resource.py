@@ -369,7 +369,7 @@ class Report(CreatableAPIResource, UpdatableAPIResource, DeletableAPIResource):
 
 def validate(act, obj, data):
     cmandatory = {
-        'dataset' : ['file', 'name', 'separator'],
+        'dataset' : ['file', 'name'],
         'dictionary' : ['name'],
         'target' : ['target_var', 'dictionary_id'],
         'model' : ['target_id', 'dataset_id'],
@@ -379,7 +379,7 @@ def validate(act, obj, data):
         'report3' : ['type', 'dictionary_id', 'dataset_id', 'model_id', 'main_modality']
     }
     coptional = {
-        'dataset' : ['header', 'file_name'],
+        'dataset' : ['header', 'separator', 'file_name'],
         'dictionary' : ['description', 'dataset_id'],
         'target' : ['unused_vars'],
         'model' : ['name'],
