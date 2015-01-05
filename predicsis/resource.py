@@ -182,8 +182,10 @@ class Dataset(CreatableAPIResource, UpdatableAPIResource, DeletableAPIResource):
         predicsis.log('Creating: dataset..', 1)
         source = Source.create(name=data.get('file'), key=str(keyList[0].firstChild.data))
         sid = str(source.id)
-        if data.get('header') == None:
-            dapi = DatasetAPI.create(name=data.get('name'), separator=data.get('separator').encode('string_escape'), source_ids=[sid])
+        if data.get('header') == None or data.get('separator') == None:
+            if not (data.get('header') == None and data.get('separator') == None):
+                predicsis.log('Either both separator and header should be set, or both should be left unset. The set parameter is skipped.', 0)
+            dapi = DatasetAPI.create(name=data.get('name'), source_ids=[sid])
         else:
             dapi = DatasetAPI.create(name=data.get('name'), header=str(data.get('header')).lower(), separator=data.get('separator').encode('string_escape'), source_ids=[sid])
         return cls(json.loads(str(dapi)))
