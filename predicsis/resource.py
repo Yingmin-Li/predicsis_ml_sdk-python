@@ -80,6 +80,8 @@ class CreatableAPIResource(APIResource):
             return cls.retrieve(j['id'])
         except KeyError:
             return cls(j)
+        except IndexError:
+            raise PredicSisError("Job launching failed. Report this bug to support@predicsis.com");
 
 class UpdatableAPIResource(APIResource):
     to_update = {}
@@ -119,6 +121,8 @@ class UpdatableAPIResource(APIResource):
                     setattr(self, k, APIResource(v))
                 else:
                     setattr(self, k, v)
+        except IndexError:
+            raise PredicSisError("Job launching failed. Report this bug to support@predicsis.com");
         
     def reset(self):
         self.to_update = {}
