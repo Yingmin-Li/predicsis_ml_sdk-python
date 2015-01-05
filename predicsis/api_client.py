@@ -4,7 +4,7 @@ from predicsis.error import PredicSisError
 from xml.dom import minidom
 import json
 
-verify_ssl_certs = True
+verify_ssl_certs = False
 ssl_certs_path='./predicsis.com.crt'
 
 class APIClient(object):
