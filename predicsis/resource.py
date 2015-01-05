@@ -235,9 +235,17 @@ class Target(CreatableAPIResource, DeletableAPIResource):
             if type(data.get('target_var')).__name__ == "str":
                 if var.name == data.get('target_var'):
                     target_id = var.id
+                    if not var.type == 'categorical':
+                        predicsis.log("Your variable is not detected as categorical - changing it manually.",0)
+                        var.update(type = 'categorical')
+                        var.save()
             elif type(data.get('target_var')).__name__ == "int":
                 if i == data.get('target_var'):
                     target_id = var.id
+                    if not var.type == 'categorical':
+                        predicsis.log("Your variable is not detected as categorical - changing it manually.",0)
+                        var.update(type = 'categorical')
+                        var.save()
             if not data.get('unused_vars') == None:
                 if var.name in data.get('unused_vars'):
                     var.update(use = False)
