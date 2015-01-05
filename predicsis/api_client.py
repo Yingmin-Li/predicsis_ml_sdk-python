@@ -26,7 +26,10 @@ class APIClient(object):
             kwargs['verify'] = ssl_certs_path
         else:
             kwargs['verify'] = False
-            requests.packages.urllib3.disable_warnings()
+            try:
+                requests.packages.urllib3.disable_warnings()
+            except AttributeError:
+                predicsis.log('Impossible to shut down the SSL-related warnings - check the version of python and/or requests package.', 0)
         try:
             try:
                 result = requests.request(method, url, headers=headers, data=post_data, files=files, timeout=80, **kwargs)
