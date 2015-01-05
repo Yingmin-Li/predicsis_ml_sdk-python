@@ -294,16 +294,20 @@ class Scoreset(CreatableAPIResource, UpdatableAPIResource, DeletableAPIResource)
         file_name = ""
         try:
             open(data.get('data'),'rb')
-            if data.get('header') == None:
-                dataset_id = Dataset.create(file=data.get('data'), separator=data.get('separator'), name = data.get('name')).id
+            if data.get('header') == None or data.get('separator') == None:
+                if not (data.get('header') == None and data.get('separator') == None):
+                    predicsis.log('Either both separator and header should be set, or both should be left unset. The set parameter is skipped.', 0)
+                dataset_id = Dataset.create(file=data.get('data'), name = data.get('name')).id
             else:
                 dataset_id = Dataset.create(file=data.get('data'), header=data.get('header'), separator=data.get('separator'), name = data.get('name')).id
         except IOError:
             f = open(file_name,'w')
             f.write(data)
             f.close()
-            if data.get('header') == None:
-                dataset_id = Dataset.create(file=file_name, separator=data.get('separator'), name = data.get('name')).id
+            if data.get('header') == None or data.get('separator') == None:
+                if not (data.get('header') == None and data.get('separator') == None):
+                    predicsis.log('Either both separator and header should be set, or both should be left unset. The set parameter is skipped.', 0)
+                dataset_id = Dataset.create(file=file_name, name = data.get('name')).id
             else:
                 dataset_id = Dataset.create(file=file_name, header=data.get('header'), separator=data.get('separator'), name = data.get('name')).id
         if dataset_id == -1:
