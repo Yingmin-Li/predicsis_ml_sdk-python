@@ -314,8 +314,10 @@ class Scoreset(CreatableAPIResource, UpdatableAPIResource, DeletableAPIResource)
             raise PredicSisError("Error creating your test dataset")
         scoresets = []
         for modality in modalities:
-            if data.get('header') == None:
-                dataset = DatasetAPI.create(name=data.get('name'), separator=data.get('separator').encode('string_escape'), classifier_id=data.get('model_id'), dataset_id=dataset_id, modalities_set_id=modalities_set_id, main_modality=modality, data_file = { "filename": data.get('file_name')})
+            if data.get('header') == None or data.get('separator') == None:
+                if not (data.get('header') == None and data.get('separator') == None):
+                    predicsis.log('Either both separator and header should be set, or both should be left unset. The set parameter is skipped.', 0)
+                dataset = DatasetAPI.create(name=data.get('name'), classifier_id=data.get('model_id'), dataset_id=dataset_id, modalities_set_id=modalities_set_id, main_modality=modality, data_file = { "filename": data.get('file_name')})
             else:
                 dataset = DatasetAPI.create(name=data.get('name'), header=str(data.get('header')).lower(), separator=data.get('separator').encode('string_escape'), classifier_id=data.get('model_id'), dataset_id=dataset_id, modalities_set_id=modalities_set_id, main_modality=modality, data_file = { "filename": data.get('file_name')})
             scoreset = cls(json.loads(str(dataset)))
