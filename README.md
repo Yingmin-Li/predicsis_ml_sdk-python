@@ -21,12 +21,12 @@ You can start using our SDK assuming you already have a [user token](https://dev
     import predicsis
 	
 	# Initiate the API with your token
-	predicsis.api_token="YOUR_SECRET_TOKEN"
+	predicsis.api_token='YOUR_SECRET_TOKEN'
 	
 	# Workflow from uploading a dataset to scores
 	dataset = predicsis.Dataset.create(file='./Iris.dat',name='My Iris',header=True,separator='\t')
-	dictionary = predicsis.Dictionary.create(name = "My new dico", dataset_id = dataset.id)
-	target = predicsis.Target.create(target_var = "Class", dictionary_id = dictionary.id)
+	dictionary = predicsis.Dictionary.create(name = 'My new dico', dataset_id = dataset.id)
+	target = predicsis.Target.create(target_var = 'Class', dictionary_id = dictionary.id)
 	model = predicsis.Model.create(dataset_id = dataset.id, target_id = target.variable_id)
 	scoresets = predicsis.Scoreset.create(dictionary_id = dictionary.id, model_id = model.id, data = './Iris.dat', header=True,separator='\t', name='Iris scored', file_name='iris_out.txt')
 	print predicsis.Scoreset.result(scoresets)
