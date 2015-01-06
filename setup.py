@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name='predicsis_ml_sdk',
-    version='0.1.0',
+    version='1.0.0',
     author='Michal K. Szczerbak',
     author_email='michal.szczerbak@predicsis.com',
     packages=['predicsis', 'predicsis.tests'],
