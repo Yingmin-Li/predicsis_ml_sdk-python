@@ -188,7 +188,8 @@ class Dataset(CreatableAPIResource, UpdatableAPIResource, DeletableAPIResource):
             dapi = DatasetAPI.create(name=data.get('name'), source_ids=[sid])
         else:
             dapi = DatasetAPI.create(name=data.get('name'), header=str(data.get('header')).lower(), separator=data.get('separator').encode('string_escape'), source_ids=[sid])
-        dapi.preview = '...not available in the SDK...'
+        for i in range(0,len(dapi.preview)):
+            dapi.preview[i] = dapi.preview[i].replace('"','*')#'...not available in the SDK...'
         return cls(json.loads(str(dapi)))
     
     def delete(self):
