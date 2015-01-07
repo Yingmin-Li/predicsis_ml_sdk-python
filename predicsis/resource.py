@@ -278,7 +278,10 @@ class Model(CreatableAPIResource):
         if validate('c', cls.__name__, data) < 0:
             raise PredicSisError("Validation failed!")
         prs = PreparationRules.create(variable_id = data.get('target_id'), dataset_id = data.get('dataset_id'))
-        clasif = Classifier.create(type='classifier',preparation_rules_set_id=prs.id)
+        if data.get('name') == None:
+            clasif = Classifier.create(type='classifier',preparation_rules_set_id=prs.id)
+        else:
+            clasif = Classifier.create(type='classifier',preparation_rules_set_id=prs.id, name=data.get('name'))
         return cls(json.loads(str(clasif)))
 
 class Scoreset(CreatableAPIResource, UpdatableAPIResource, DeletableAPIResource):
@@ -411,7 +414,7 @@ def validate(act, obj, data):
         'report' : ['title']
     }
     if not obj.lower() in coptional.keys() + uoptional.keys():
-        predicsis.log('Unvalidated object [' + obj + ']', 0)
+        predicsis.log('Unvalidated object [' + obj + ']', 1)
         return 0
     if act == 'c':
         predicsis.log('Parameters: mandatory'+ str(cmandatory.get(obj.lower())) + ', optional' + str(coptional.get(obj.lower())) + ', passed' + str(data.keys()), 3)
