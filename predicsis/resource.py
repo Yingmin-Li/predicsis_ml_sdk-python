@@ -277,7 +277,7 @@ class Model(CreatableAPIResource):
     def create(cls, **data):
         if validate('c', cls.__name__, data) < 0:
             raise PredicSisError("Validation failed!")
-        prs = PreparationRules.create(variable_id = data.get('target_id'), dataset_id = data.get('dataset_id'))
+        prs = PreparationRules.create(variable_id = data.get('variable_id'), dataset_id = data.get('dataset_id'))
         if data.get('name') == None:
             clasif = Classifier.create(type='classifier',preparation_rules_set_id=prs.id)
         else:
@@ -376,12 +376,8 @@ class Report(CreatableAPIResource, UpdatableAPIResource, DeletableAPIResource):
             rep = ReportAPI.create(type=data.get('type'), dataset_id = data.get('dataset_id'), dictionary_id = data.get('dictionary_id'), variable_id = data.get('variable_id'))
             return cls(json.loads(str(rep)))
         elif type == 'classifier_evaluation':
-            response = Model.retrieve(data['model_id'])
-            prs_id = response.preparation_rules_set_id
-            response = PreparationRules.retrieve(prs_id)
-            var_id = response.variable_id
             Variable.dictionary_id = data.get('dictionary_id')
-            response = Variable.retrieve(var_id)
+            response = Variable.retrieve(data.get('variable_id'))
             modalities_set_id = response.modalities_set_ids[0]
             rep = ReportAPI.create(type=data.get('type'), dataset_id = data.get('dataset_id'), modalities_set_id=modalities_set_id, classifier_id = data.get('model_id'), main_modality=data.get('main_modality'))
             return cls(json.loads(str(rep)))
@@ -391,11 +387,11 @@ def validate(act, obj, data):
         'dataset' : ['file', 'name'],
         'dictionary' : ['name'],
         'target' : ['target_var', 'dictionary_id'],
-        'model' : ['target_id', 'dataset_id'],
+        'model' : ['variable_id', 'dataset_id'],
         'scoreset' : ['name', 'separator', 'model_id', 'dictionary_id', 'data', 'file_name'],
         'report1' : ['type', 'dictionary_id', 'dataset_id'],
         'report2' : ['type', 'dictionary_id', 'dataset_id', 'variable_id'],
-        'report3' : ['type', 'dictionary_id', 'dataset_id', 'model_id', 'main_modality']
+        'report3' : ['type', 'dictionary_id', 'dataset_id', 'model_id', 'main_modality', 'variable_id']
     }
     coptional = {
         'dataset' : ['header', 'separator', 'file_name'],
