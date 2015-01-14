@@ -5,6 +5,7 @@ import predicsis
 import json
 import datetime
 from xml.dom import minidom
+import time
 
 class APIResource(dict):
     
@@ -52,7 +53,7 @@ class APIResource(dict):
             if (type(value).__name__ == "str" or type(value).__name__ == "unicode") and not value=='true' and not value=='false':
                 post_data += '"' + key +'":"' + value + '",'
             else:
-                post_data += '"' + key +'":' + str(value).replace("'", "\"") + ','
+                post_data += '"' + key +'":' + str(value).replace("'", "\"").replace("False","false").replace("True","true").replace("None","null") + ','
         if post_data.endswith(','):
             post_data = post_data[0:-1]
         post_data += '}}'
@@ -77,6 +78,7 @@ class CreatableAPIResource(APIResource):
                 status = job.status
                 if status == 'failed':
                     raise PredicSisError("Job failed! (job_id: " + job.id + ")")
+                #time.sleep(1)
             return cls.retrieve(j['id'])
         except KeyError:
             return cls(j)
@@ -106,6 +108,7 @@ class UpdatableAPIResource(APIResource):
                 status = job.status
                 if status == 'failed':
                     raise PredicSisError("Job failed! (job_id: " + job.id + ")")
+                #time.sleep(1)
             json_data = APIClient.request('get', self.res_url() + '/' + self.id)
             obj = json_data[self.res_name()]
             for k, v in obj.iteritems():
@@ -189,7 +192,7 @@ class Dataset(CreatableAPIResource, UpdatableAPIResource, DeletableAPIResource):
         else:
             dapi = DatasetAPI.create(name=data.get('name'), header=str(data.get('header')).lower(), separator=data.get('separator').encode('string_escape'), source_ids=[sid])
         for i in range(0,len(dapi.preview)):
-            dapi.preview[i] = dapi.preview[i].replace('"','*')#'...not available in the SDK...'
+            dapi.preview[i] = '...not available in the SDK...'#dapi.preview[i].replace('"','*')#
         return cls(json.loads(str(dapi)))
     
     def delete(self):
@@ -388,7 +391,7 @@ def validate(act, obj, data):
         'dictionary' : ['name'],
         'target' : ['target_var', 'dictionary_id'],
         'model' : ['variable_id', 'dataset_id'],
-        'scoreset' : ['name', 'separator', 'model_id', 'dictionary_id', 'data', 'file_name'],
+        'scoreset' : ['name', 'model_id', 'dictionary_id', 'data', 'file_name'],
         'report1' : ['type', 'dictionary_id', 'dataset_id'],
         'report2' : ['type', 'dictionary_id', 'dataset_id', 'variable_id'],
         'report3' : ['type', 'dictionary_id', 'dataset_id', 'model_id', 'main_modality', 'variable_id']
@@ -398,7 +401,7 @@ def validate(act, obj, data):
         'dictionary' : ['description', 'dataset_id'],
         'target' : ['unused_vars'],
         'model' : ['name'],
-        'scoreset' : ['header'],
+        'scoreset' : ['header', 'separator'],
         'report1' : ['title'],
         'report2' : ['title'],
         'report3' : ['title']
