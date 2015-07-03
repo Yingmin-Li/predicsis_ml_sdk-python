@@ -6,6 +6,7 @@ import json
 import datetime
 from xml.dom import minidom
 import time
+from os.path import exists
 
 class APIResource(dict):
     
@@ -176,6 +177,8 @@ class Dataset(CreatableAPIResource, UpdatableAPIResource, DeletableAPIResource):
             'key':credentials.key
         }
         predicsis.log('Uploading a file..', 1)
+        if not exists(data.get('file')):
+			raise PredicSisError('The file doesn\'t exist: ' + data.get('file') + '.')
         files = {'file': open(data.get('file'),'rb')}
         response = APIClient.request_full(method='post', url=credentials.s3_endpoint, headers=[],post_data=payload, files=files)
         if not response[1] == 201:
@@ -307,8 +310,10 @@ class Scoreset(CreatableAPIResource, UpdatableAPIResource, DeletableAPIResource)
         modalities = response.modalities
         predicsis.log('Preparing data..', 1)
         dataset_id = -1
-        file_name = ""
+        file_name = "./tmp.dat"
         try:
+            if not exists(data.get('data')):
+                predicsis.log('The file doesn\'t exist: ' + data.get('data') + '. Passing this value as a content.', 0)
             open(data.get('data'),'rb')
             if data.get('header') == None or data.get('separator') == None:
                 if not (data.get('header') == None and data.get('separator') == None):
@@ -318,7 +323,7 @@ class Scoreset(CreatableAPIResource, UpdatableAPIResource, DeletableAPIResource)
                 dataset_id = Dataset.create(file=data.get('data'), header=data.get('header'), separator=data.get('separator'), name = data.get('name')).id
         except IOError:
             f = open(file_name,'w')
-            f.write(data)
+            f.write(data.get('data'))
             f.close()
             if data.get('header') == None or data.get('separator') == None:
                 if not (data.get('header') == None and data.get('separator') == None):

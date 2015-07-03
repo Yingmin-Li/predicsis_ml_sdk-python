@@ -33,8 +33,11 @@ class APIClient(object):
         try:
             try:
                 result = requests.request(method, url, headers=headers, data=post_data, files=files, timeout=80, **kwargs)
-            except TypeError, e:
-                raise TypeError('Your "requests" library may be out of date. Error was: %s' % (e,))
+            except:
+                try:
+                    result = requests.request(method, url, headers=headers, data=str(post_data), files=files, timeout=80, **kwargs)
+                except TypeError, e:
+                    raise TypeError('Your "requests" library may be out of date. Error was: %s' % (e,))
             content = result.content
             status_code = result.status_code
             if files == None and not method=='delete':
